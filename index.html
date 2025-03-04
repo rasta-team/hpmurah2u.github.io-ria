@@ -1,2 +1,132 @@
-<div id="stream"><iframe src="https://tvmalaysialive.damnserver.com/token/riaz.html" width="100%" height="680" frameborder="0" allowfullscreen="allowfullscreen" scrolling="no" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; geolocation; web-share; speaker-selection; screen-wake-lock; idle-detection" allowfullscreen></iframe></div>
-<br />
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EJALTV</title>
+    <style>
+        div a img { visibility: hidden; }
+        body { margin: 0; background-color: black; }
+
+        /* Add your gradient styles here */
+        .shaka-seek-bar-container .shaka-seek-bar {
+            background: linear-gradient(to right, #051937, #00205b, #00247e, #22229f, #510dbc);
+        }
+        .shaka-volume-bar-container .shaka-volume-bar {
+            background: linear-gradient(to right, #051937, #00205b, #00247e, #22229f, #510dbc);
+        }
+        /* Change color of all Shaka Player SVG icons */
+        .shaka-video-container .material-icons-round {
+            color: #00abe2;
+        }
+        .shaka-spinner-path {
+            stroke-dasharray: 1, 2000;
+            stroke-dashoffset: 0;
+            animation: dash 1.5s ease-in-out infinite, color 6s ease-in-out infinite;
+            stroke-linecap: round;
+        }
+        @keyframes color {
+            100%, 0% { stroke: #d62d20; }
+            40% { stroke: #0057e7; }
+            66% { stroke: #008744; }
+            80%, 90% { stroke: #ffa700; }
+        }
+    </style>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="no-referrer" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.5/shaka-player.ui.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.5/controls.min.css" crossorigin="anonymous" />
+</head>
+<body>
+
+    <center>
+        <b><p style="color:white; opacity:0.27;">EJALTV</p></b>
+    </center>
+
+    <div data-shaka-player-container style="position:absolute; z-index: -1; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+        <video autoplay data-shaka-player poster="https://github.com/hpmurah2u/pejal/blob/PEJAL/ejaltv%20loading%20baru.png?raw=true" id="video" style="width:100%; height:100%;"></video>
+    </div>
+
+    <script>
+        const manifestUri = "https://l16.dp.sooka.my/1004/linear/index.mpd";
+
+        async function init() {
+            const video = document.getElementById('video');
+            const ui = video['ui'];
+            const controls = ui.getControls();
+            const player = controls.getPlayer();
+            window.player = player;
+            window.ui = ui;
+
+            player.setTextTrackVisibility(true);
+            player.configure({
+                drm: {
+                    "clearKeys": {
+                        'c15541e4dde34c48a0d144a4b0ab7194': 'ce82e3d81126183e5a262e320f6348b3',
+                        'd5249cb40505495494828f42c37087cb': 'd59f6a7bed00bd5348355ab5b3ee6aa0' // Added new key
+                    }
+                },
+                abr: {
+                    defaultBandwidthEstimate: 16888,
+                    enabled: true,
+                    restrictions: {
+                        minHeight: 359,
+                        maxHeight: 720
+                    }
+                },
+                streaming: {
+                    bufferingGoal: 10
+                },
+                manifest: {
+                    retryParameters: {
+                        maxAttempts: 3
+                    }
+                },
+                networking: {
+                    retryParameters: {
+                        maxAttempts: 3
+                    }
+                }
+            });
+
+            // Add Authorization Header
+            player.getNetworkingEngine().registerRequestFilter((type, request) => {
+                if (type === shaka.net.NetworkingEngine.RequestType.MANIFEST || 
+                    type === shaka.net.NetworkingEngine.RequestType.SEGMENT) {
+                    request.headers["Authorization"] = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NDEwNTAyNjUsImlzcyI6IlZSIiwiZXhwIjoxNzQxMTI3NDAwLCJ3bXZlciI6Mywid21pZGZtdCI6ImFzY2lpIiwid21pZHR5cCI6MSwid21rZXl2ZXIiOjMsIndtdG1pZHZlciI6NCwid21pZGxlbiI6NTEyLCJ3bW9waWQiOjMyLCJ3bWlkIjoiMjU3MjdkMjItZjcwOC00MGRmLWI3Y2QtYjdkYzBmMDk3YTViIiwiZmlsdGVyIjoiKHR5cGU9PVwidmlkZW9cIiYmRGlzcGxheUhlaWdodDw9NDgwKXx8KHR5cGU9PVwiYXVkaW9cIiYmZm91ckNDIT1cImFjLTNcIil8fCh0eXBlIT1cInZpZGVvXCImJnR5cGUhPVwiYXVkaW9cIikifQ.Z4RbFG4rG35_fepAzCTPg1xr4GL0gcaS9ZPZ3SiWy_U";
+                }
+            });
+
+            player.addEventListener('error', onPlayerErrorEvent);
+            controls.addEventListener('error', onUIErrorEvent);
+
+            try {
+                await player.load(manifestUri);
+                console.log('The video has now been loaded!');
+            } catch (error) {
+                onPlayerError(error);
+            }
+        }
+
+        function onPlayerErrorEvent(errorEvent) {
+            onPlayerError(errorEvent.detail);
+        }
+
+        function onPlayerError(error) {
+            console.error('Error code', error.code, 'object', error);
+        }
+
+        function onUIErrorEvent(errorEvent) {
+            onPlayerError(errorEvent.detail);
+        }
+
+        function initFailed(errorEvent) {
+            console.error('Unable to load the UI library!');
+        }
+
+        document.addEventListener('shaka-ui-loaded', init);
+        document.addEventListener('shaka-ui-load-failed', initFailed);
+    </script>
+
+</body>
+</html>
